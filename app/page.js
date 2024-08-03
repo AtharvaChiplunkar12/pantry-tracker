@@ -1,6 +1,10 @@
 "use client";
 import { firestore } from "../firebase";
 import styled from "@emotion/styled";
+import PageviewIcon from "@mui/icons-material/Pageview";
+import DeleteIcon from "@mui/icons-material/Delete";
+import SearchOffIcon from "@mui/icons-material/SearchOff";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import {
   Box,
   Button,
@@ -25,6 +29,8 @@ import {
   setDoc,
   deleteDoc,
   doc,
+  where,
+  addDoc,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
@@ -33,46 +39,77 @@ export default function Home() {
   const [open, setOpen] = useState(false);
   const [itemName, setItemName] = useState("");
   const [buttonValue, setButtonValue] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const getPantry = async () => {
-    const snapshot = query(collection(firestore, "pantry"));
+    let snapshot;
+    if (searchQuery) {
+      snapshot = query(
+        collection(firestore, "pantry"),
+        where("name", ">=", searchQuery),
+        where("name", "<=", searchQuery + "\uf8ff")
+      );
+    } else {
+      snapshot = query(collection(firestore, "pantry"));
+    }
     const querySnapshot = await getDocs(snapshot);
     const pantryList = [];
 
     querySnapshot.forEach((doc) => {
-      pantryList.push({ name: doc.id, ...doc.data() });
+      pantryList.push({ id: doc.id, ...doc.data() });
     });
-    //console.log(pantryList);
+    console.log(pantryList);
     setPantry(pantryList);
   };
   const addItem = async (item) => {
-    const docRef = doc(collection(firestore, "pantry"), item);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      const { count } = docSnap.data();
-      await setDoc(docRef, { count: count + 1 });
-    } else {
-      await setDoc(docRef, { count: 1 });
+    try {
+      const snapshot = query(
+        collection(firestore, "pantry"),
+        where("name", "==", item.name)
+      );
+      const querySnapshot = await getDocs(snapshot);
+      if (querySnapshot.docs.length > 0) {
+        const docSnap = querySnapshot.docs[0];
+        const docRef = doc(firestore, "pantry", docSnap.id);
+        const { quantity } = docSnap.data();
+        await setDoc(docRef, { quantity: quantity + 1 }, { merge: true });
+      } else {
+        await addDoc(collection(firestore, "pantry"), { ...item, quantity: 1 });
+      }
+    } catch (error) {
+      console.error("Error adding item: ", error);
     }
     await getPantry();
+    setItemName("");
+    handleClose();
   };
-  const removeItem = async (item) => {
-    const docRef = doc(collection(firestore, "pantry"), item);
+  const handleSearch = async (name) => {
+    setSearchQuery(name);
+    await getPantry();
+    setItemName("");
+    handleClose();
+  };
+  const cancelSearch = async () => {
+    setSearchQuery("");
+    await getPantry();
+  };
+  const removeItem = async (id) => {
+    console.log(id);
+    const docRef = doc(collection(firestore, "pantry"), id);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-      const { count } = docSnap.data();
-      if (count === 1) {
+      const { name, quantity } = docSnap.data();
+      if (quantity === 1) {
         await deleteDoc(docRef);
       } else {
-        await setDoc(docRef, { count: count - 1 });
+        await setDoc(docRef, { name: name, quantity: quantity - 1 });
       }
     }
     await getPantry();
   };
-  const deleteItem = async (item) => {
-    const docRef = doc(collection(firestore, "pantry"), item);
+  const deleteItem = async (id) => {
+    const docRef = doc(collection(firestore, "pantry"), id);
     await deleteDoc(docRef);
     await getPantry();
   };
@@ -81,11 +118,14 @@ export default function Home() {
     setOpen(true);
   };
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setOpen(false);
+    setButtonValue(0);
+  };
 
   useEffect(() => {
     getPantry();
-  }, []);
+  }, [searchQuery]);
 
   const style = {
     position: "absolute",
@@ -142,13 +182,13 @@ export default function Home() {
             />
             <Button
               variant="outlined"
-              onClick={() => {
-                addItem(itemName);
-                setItemName("");
-                handleClose();
-              }}
+              onClick={() =>
+                buttonValue === 0
+                  ? addItem({ name: itemName })
+                  : handleSearch(itemName)
+              }
             >
-              Add
+              Go
             </Button>
           </Stack>
         </Box>
@@ -156,38 +196,53 @@ export default function Home() {
       <Typography
         variant="h1"
         color={"#FFD700"}
+        fontFamily={"Courier New Arial"}
+        sx={{ mt: 3, mb: 7 }}
       >
         Pantry Tracker
       </Typography>
-
-      <Stack
-        direction="row"
-        spacing={2}
-        sx={{ justifyContent: "center", mt: 2, mb: 2 }}
-      >
-        <Button
-          variant="contained"
-          onClick={()=>handleOpen(0)}
-        >
-          Add
-        </Button>
-        <Button variant="contained">Add by Photo</Button>
-        <Button variant="contained">Remove by Photo</Button>
-        <Button
-          variant="contained"
-          onClick={()=>handleOpen(1)}
-        >
-          Search Item
-        </Button>
-      </Stack>
-
       <Box
-        border={"1px solid #333"}
-        sx={{}}
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "column",
+        }}
       >
+        <Stack
+          direction="row"
+          spacing={2}
+          sx={{ justifyContent: "center", mt: 2, mb: 2 }}
+        >
+          <Box>
+            <AddCircleOutlineIcon
+              onClick={() => handleOpen(0)}
+              sx={{
+                fontSize: "48px",
+                color: "white",
+                cursor: "pointer",
+              }}
+            />
+            <Typography
+              color={"white"}
+              fontSize={12}
+            >
+              Add
+            </Typography>
+          </Box>
+
+          <Button variant="contained">Add by Photo</Button>
+          <Button variant="contained">Remove by Photo</Button>
+        </Stack>
+
         <TableContainer
           component={Paper}
-          sx={{ maxHeight: 400, bgcolor: "#D3D3D3", color: "#F0F8FF" }}
+          sx={{
+            width: "70%",
+            maxHeight: 500,
+            bgcolor: "#D3D3D3",
+            color: "#000",
+          }}
         >
           <Table stickyHeader>
             <TableHead>
@@ -198,17 +253,60 @@ export default function Home() {
                 <TableCell align="center">
                   <Typography variant="h6">Quantity</Typography>
                 </TableCell>
-                <TableCell align="center"></TableCell>
+                <TableCell align="center">
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        flexDirection: "column",
+                        mr: 2,
+                      }}
+                    >
+                      <PageviewIcon
+                        onClick={() => handleOpen(1)}
+                        sx={{
+                          fontSize: "48px",
+                          cursor: "pointer",
+                        }}
+                      />
+                      <Typography fontSize={12}>Search</Typography>
+                    </Box>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        flexDirection: "column",
+                        ml: 2,
+                      }}
+                    >
+                      <SearchOffIcon
+                        onClick={cancelSearch}
+                        sx={{
+                          fontSize: "40px",
+                          cursor: "pointer",
+                        }}
+                      />
+                      <Typography fontSize={12}>Cancel</Typography>
+                    </Box>
+                  </Box>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {pantry.map((item) => (
                 <TableRow
-                  key={item.name}
+                  key={item.id}
                   sx={{ border: 2 }}
                 >
                   <TableCell align="center">
-                    <Typography variant="h8">{item.name}</Typography>
+                    <Typography variant="body1">{item.name}</Typography>
                   </TableCell>
                   <TableCell align="center">
                     <Box
@@ -220,28 +318,31 @@ export default function Home() {
                     >
                       <Button
                         variant="contained"
-                        onClick={() => addItem(item.name)}
+                        onClick={() => addItem(item)}
+                        sx={{ minWidth: "30px", px: 1 }}
                       >
                         +
                       </Button>
                       <Typography
                         variant="body1"
-                        sx={{ mx: 2 }}
+                        sx={{ mx: 2, minWidth: "20px", textAlign: "center" }}
                       >
-                        {item.count}
+                        {item.quantity}
                       </Typography>
                       <Button
                         variant="contained"
-                        onClick={() => removeItem(item.name)}
+                        onClick={() => removeItem(item.id)}
+                        sx={{ minWidth: "30px", px: 1 }}
                       >
                         -
                       </Button>
                     </Box>
                   </TableCell>
-                  <TableCell>
-                    <Button onClick={() => deleteItem(item.name)}>
-                      Delete
-                    </Button>
+                  <TableCell align="center">
+                    <DeleteIcon
+                      onClick={() => deleteItem(item.id)}
+                      sx={{ ":hover": { cursor: "pointer" } }}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
