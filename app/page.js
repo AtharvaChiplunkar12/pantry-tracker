@@ -1,6 +1,6 @@
 "use client";
-import {firestore} from "../firebase";
-// import styled from "@emotion/styled";
+// import {firestore} from "../firebase";
+import styled from "@emotion/styled";
 import {
   Box,
   Button,
@@ -23,9 +23,9 @@ import {
 import { useEffect, useState } from "react";
 
 export default function Home() {
-  // const [pantry, setPantry] = useState([]);
-  // const [open, setOpen] = useState(false);
-  // const [itemName, setItemName] = useState("");
+  const [pantry, setPantry] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [itemName, setItemName] = useState("");
 
   // const getPantry = async () => {
   //   const snapshot = query(collection(firestore, "pantry"));
@@ -64,8 +64,8 @@ export default function Home() {
   //   }
   //   await getPantry();
   // };
-  // const handleOpen = () => setOpen(true);
-  // const handleClose = () => setOpen(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
 
   // useEffect(() => {
   //   getPantry();
