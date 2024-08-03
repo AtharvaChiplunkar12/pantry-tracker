@@ -8,8 +8,14 @@ import {
   Modal,
   Paper,
   Stack,
+  Table,
+  TableHead,
+  TableCell,
+  TableRow,
   TextField,
   Typography,
+  TableBody,
+  TableContainer,
 } from "@mui/material";
 import {
   collection,
@@ -26,6 +32,7 @@ export default function Home() {
   const [pantry, setPantry] = useState([]);
   const [open, setOpen] = useState(false);
   const [itemName, setItemName] = useState("");
+  const [buttonValue, setButtonValue] = useState(0);
 
   const getPantry = async () => {
     const snapshot = query(collection(firestore, "pantry"));
@@ -64,7 +71,16 @@ export default function Home() {
     }
     await getPantry();
   };
-  const handleOpen = () => setOpen(true);
+  const deleteItem = async (item) => {
+    const docRef = doc(collection(firestore, "pantry"), item);
+    await deleteDoc(docRef);
+    await getPantry();
+  };
+  const handleOpen = (val) => {
+    setButtonValue(val);
+    setOpen(true);
+  };
+
   const handleClose = () => setOpen(false);
 
   useEffect(() => {
@@ -88,8 +104,15 @@ export default function Home() {
 
   return (
     <Container
-      maxWidth="lg"
-      sx={{ textAlign: "center", display: "flex", flexDirection: "column" }}
+      maxWidth="xl"
+      sx={{
+        textAlign: "center",
+        display: "flex",
+        flexDirection: "column",
+        bgcolor: "#003366",
+        width: "100vw",
+        height: "100vh",
+      }}
     >
       <Modal
         open={open}
@@ -103,7 +126,7 @@ export default function Home() {
             variant="h6"
             component="h2"
           >
-            Add Item
+            {buttonValue === 0 ? "Add Item" : "Search Item"}
           </Typography>
           <Stack
             width="100%"
@@ -130,81 +153,101 @@ export default function Home() {
           </Stack>
         </Box>
       </Modal>
-      <Typography variant="h1">Pantry Tracker</Typography>
-      <Box sx={{ bgcolor: "#cfe8fc", height: "100vh" }}>
-        <Stack
-          direction="row"
-          spacing={2}
-          sx={{ justifyContent: "center", mt: 2, mb: 2 }}
-        >
-          <Button
-            variant="contained"
-            onClick={handleOpen}
-          >
-            Add
-          </Button>
-          <Button variant="contained">Add by Photo</Button>
-          <Button variant="contained">Remove by Photo</Button>
-        </Stack>
+      <Typography
+        variant="h1"
+        color={"#FFD700"}
+      >
+        Pantry Tracker
+      </Typography>
 
-        <Box
-          border={"1px solid #333"}
-          sx={{
-            display: "flex",
-            bgcolor: "tomato",
-            ml: 5,
-            mr: 5,
-            flexDirection: "column",
-            alignItems: "center",
-          }}
+      <Stack
+        direction="row"
+        spacing={2}
+        sx={{ justifyContent: "center", mt: 2, mb: 2 }}
+      >
+        <Button
+          variant="contained"
+          onClick={()=>handleOpen(0)}
         >
-          <Box>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-              }}
-            >
-              <Typography variant="h3">Pantry Items</Typography>
-              <Typography variant="h3">Quantity</Typography>
-            </Box>
-            <Stack sx={{ display: "flex", justifyContent: "space-between" }}>
-              {pantry.map(({ name, count }) => (
-                <Paper
-                  key={name}
-                  elevation={3}
-                  sx={{
-                    display: "flex",
-                    direction: "row",
-                    justifyContent: "space-between",
+          Add
+        </Button>
+        <Button variant="contained">Add by Photo</Button>
+        <Button variant="contained">Remove by Photo</Button>
+        <Button
+          variant="contained"
+          onClick={()=>handleOpen(1)}
+        >
+          Search Item
+        </Button>
+      </Stack>
 
-                    border: "1px solid #333",
-                  }}
+      <Box
+        border={"1px solid #333"}
+        sx={{}}
+      >
+        <TableContainer
+          component={Paper}
+          sx={{ maxHeight: 400, bgcolor: "#D3D3D3", color: "#F0F8FF" }}
+        >
+          <Table stickyHeader>
+            <TableHead>
+              <TableRow>
+                <TableCell align="center">
+                  <Typography variant="h6">Item Name</Typography>
+                </TableCell>
+                <TableCell align="center">
+                  <Typography variant="h6">Quantity</Typography>
+                </TableCell>
+                <TableCell align="center"></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {pantry.map((item) => (
+                <TableRow
+                  key={item.name}
+                  sx={{ border: 2 }}
                 >
-                  <Typography
-                    variant={"h3"}
-                    textAlign={"center"}
-                  >
-                    {name.charAt(0).toUpperCase() + name.slice(1)}
-                  </Typography>
-
-                  <Typography
-                    variant={"h3"}
-                    textAlign={"center"}
-                  >
-                    {count}
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    onClick={() => removeItem(name)}
-                  >
-                    Remove
-                  </Button>
-                </Paper>
+                  <TableCell align="center">
+                    <Typography variant="h8">{item.name}</Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Button
+                        variant="contained"
+                        onClick={() => addItem(item.name)}
+                      >
+                        +
+                      </Button>
+                      <Typography
+                        variant="body1"
+                        sx={{ mx: 2 }}
+                      >
+                        {item.count}
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        onClick={() => removeItem(item.name)}
+                      >
+                        -
+                      </Button>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Button onClick={() => deleteItem(item.name)}>
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
               ))}
-            </Stack>
-          </Box>
-        </Box>
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Box>
     </Container>
   );
