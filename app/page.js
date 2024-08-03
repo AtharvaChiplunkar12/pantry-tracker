@@ -91,45 +91,7 @@ export default function Home() {
       maxWidth="lg"
       sx={{ textAlign: "center", display: "flex", flexDirection: "column" }}
     >
-      <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Box sx={style}>
-          <Typography
-            id="modal-modal-title"
-            variant="h6"
-            component="h2"
-          >
-            Add Item
-          </Typography>
-          <Stack
-            width="100%"
-            direction={"row"}
-            spacing={2}
-          >
-            <TextField
-              id="outlined-basic"
-              label="Item"
-              variant="outlined"
-              fullWidth
-              onChange={(e) => setItemName(e.target.value)}
-            />
-            <Button
-              variant="outlined"
-              onClick={() => {
-                addItem(itemName);
-                setItemName("");
-                handleClose();
-              }}
-            >
-              Add
-            </Button>
-          </Stack>
-        </Box>
-      </Modal>
+    
       <Typography variant="h1">Pantry Tracker</Typography>
       <Box sx={{ bgcolor: "#cfe8fc", height: "100vh" }}>
         <Stack
