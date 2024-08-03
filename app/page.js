@@ -1,5 +1,5 @@
 "use client";
-// import { firestore } from "@/firebase";
+import { firestore } from "../firebase";
 // import styled from "@emotion/styled";
 import {
   Box,
