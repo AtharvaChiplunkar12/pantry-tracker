@@ -87,8 +87,6 @@ export default function Home() {
   };
 
   return (
-    <Container>
-      <Typography variant="h1">Hello</Typography>
-    </Container>
+    <div>Hello</div>
   );
 }
