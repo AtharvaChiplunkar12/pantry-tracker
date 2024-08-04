@@ -238,7 +238,7 @@ export default function Home() {
         <TableContainer
           component={Paper}
           sx={{
-            width: "70%",
+            width: "60%",
             maxHeight: 500,
             bgcolor: "#D3D3D3",
             color: "#000",
@@ -253,7 +253,12 @@ export default function Home() {
                 <TableCell align="center">
                   <Typography variant="h6">Quantity</Typography>
                 </TableCell>
-                <TableCell align="center">
+                <TableCell
+                  align="left"
+                  sx={{
+                    padding: "4px",
+                  }}
+                >
                   <Box
                     sx={{
                       display: "flex",
@@ -308,7 +313,12 @@ export default function Home() {
                   <TableCell align="center">
                     <Typography variant="body1">{item.name}</Typography>
                   </TableCell>
-                  <TableCell align="center">
+                  <TableCell
+                    align="center"
+                    sx={{
+                      padding: "1px",
+                    }}
+                  >
                     <Box
                       sx={{
                         display: "flex",
@@ -338,7 +348,7 @@ export default function Home() {
                       </Button>
                     </Box>
                   </TableCell>
-                  <TableCell align="center">
+                  <TableCell align="left">
                     <DeleteIcon
                       onClick={() => deleteItem(item.id)}
                       sx={{ ":hover": { cursor: "pointer" } }}
