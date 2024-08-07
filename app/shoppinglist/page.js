@@ -1,10 +1,9 @@
+import React from "react";
+import Header from "../Header";
 import { Container } from "@mui/material";
-import Dashboard from "./Dashboard";
-import Header from "./Header";
+import ListPage from "./ListPage";
 
-
-export default function Home() {
-  
+export default function ShoppingList() {
   return (
     <Container
       maxWidth="xl"
@@ -18,7 +17,7 @@ export default function Home() {
       }}
     >
       <Header />
-      <Dashboard/>
+      <ListPage/>
     </Container>
   );
 }

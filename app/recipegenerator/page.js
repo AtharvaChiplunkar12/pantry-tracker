@@ -1,10 +1,10 @@
+import React from "react";
+import Header from "../Header";
+import GeneratorPage from "./GeneratorPage";
 import { Container } from "@mui/material";
-import Dashboard from "./Dashboard";
-import Header from "./Header";
 
 
-export default function Home() {
-  
+export default function RecipeGenerator() {
   return (
     <Container
       maxWidth="xl"
@@ -18,7 +18,7 @@ export default function Home() {
       }}
     >
       <Header />
-      <Dashboard/>
+      <GeneratorPage/>
     </Container>
   );
 }
